@@ -16,6 +16,11 @@ public class Counter {
     counter ++;
   }
 
+  // Increase the counter's value by a provided ammount
+  public void increaseBy(int ammount) {
+    this.counter += ammount;
+  }
+
   // Return the value of the counter.
   public int getValue() {
     return counter;
