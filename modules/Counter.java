@@ -3,7 +3,7 @@ package modules;
 public class Counter {
   // Make the counter value.
   int counter;
-  int startingValue;
+  final int startingValue;
 
   // Create the counter when the constructor is called.
   public Counter(int startingValue) {
@@ -16,9 +16,9 @@ public class Counter {
     counter ++;
   }
 
-  // Increase the counter's value by a provided ammount
-  public void increaseBy(int ammount) {
-    this.counter += ammount;
+  // Increase the counter's value by a provided amount
+  public void increaseBy(int amount) {
+    this.counter += amount;
   }
 
   // Return the value of the counter.

@@ -1,51 +1,54 @@
 package modules;
 import modules.*;
 
-public class CounterThread implements Runnable {
+public class CounterThread extends Thread {
   // Make a counter to hold the number of automatic clicks.
-  Counter autoClicks = new Counter(0);
+  public final Counter autoClicks = new Counter(0);
   int clicksPerTick = 1;
-  boolean loop = true;
+  boolean interrupt = false;
+  public boolean active = false;
 
   public void run() {
-    for (int i = 0; i < clicksPerTick; i++) {
+    try {
+      Thread.sleep(500);
+    } catch (InterruptedException e) {
+      // Do nothing.
+    }
+    this.active = true;
+    this.startLoop();
+  }
+
+  public void startLoop() {
+    System.out.print("Started.");
+    for (int i = 0; i < 10; i += 0) {
       try {
-        Thread.sleep(10);
+        Thread.sleep(1000);
+        i--;
+        autoClicks.increaseBy(clicksPerTick);
       } catch (InterruptedException e) {
-        // Wake up.
+        autoClicks.increaseBy(clicksPerTick);
+        break;
       }
-      this.increase();
+      System.out.println("\nLooped " + autoClicks.getValue());
     }
   }
 
-  public void increase() {
-    for (int j = 0; j < clicksPerTick; j++) {
-      autoClicks.increase();
-    }
+  public void interrupt() {
+    this.interrupt = true;
+    this.active = false;
+    System.out.println("Interrupted.");
   }
 
   public int getValue() {
     return autoClicks.getValue();
   }
 
-  public void startLoop() {
-    System.out.println("Thread 2 Active!");
-    System.out.println("Loop started?\nValue of autoClicks: " + autoClicks.getValue());
-    loop = true;
-    // do {
-      try {
-        run(); 
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        System.out.println("Loop broken.");
-        // break;
-      }
-    // } while (true);
-    System.out.println("Loop broken.");
+  public void increaseByOne() {
+    autoClicks.increaseBy(1);
   }
 
-  public void increaseCPTBy(int ammount) {
-    clicksPerTick += ammount; 
+  public void increaseCPTBy(int amount) {
+    clicksPerTick += amount;
     
     if (clicksPerTick == 0) {
       clicksPerTick = 1;
@@ -57,7 +60,7 @@ public class CounterThread implements Runnable {
     return clicksPerTick;
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     (new Thread(new CounterThread())).start();
   }
 }
