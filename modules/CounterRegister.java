@@ -6,10 +6,18 @@ public class CounterRegister {
   private AtomicInteger autoClicks = new AtomicInteger(1);
   public int clicksPerTick = 1;
   public boolean interrupt = false;
-  public boolean active = false;
+  boolean active = false;
 
   public void run() {
     this.active = true;
+  }
+
+  public boolean getActivity () {
+    return this.active;
+  }
+
+  public void setActive(boolean val) {
+    this.active = val;
   }
 
   public void startLoop() {
@@ -57,5 +65,9 @@ public class CounterRegister {
 
   public int getCPT() {
     return clicksPerTick;
+  }
+
+  public void setValue(int value) {
+    autoClicks.set(value);
   }
 }
