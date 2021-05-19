@@ -6,11 +6,11 @@ public class Main extends Thread {
 
   public static void main(String[] args) {
     System.out.println("Active");
-    System.out.println("Is EDT thread?: " + SwingUtilities.isEventDispatchThread());
+    // System.out.println("Is EDT thread?: " + SwingUtilities.isEventDispatchThread());
     
     JFrame f = new JFrame();
     f.setVisible(true);
-    f.setTitle("Clicker Game: 2");
+    f.setTitle("Clicker Game 2");
 
     f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -52,13 +52,13 @@ public class Main extends Thread {
 
       @Override
       protected Boolean doInBackground() throws Exception {
-        System.out.println("Thread active.");
+        System.out.println("Counter thread active.");
         Thread.sleep(1000);
-        System.out.println("If you see this second, that means that the thread is working.");
+        // System.out.println("If you see this second, that means that the thread is working.");
         // Integer i = 0;
-        ctr.setActive(true);
+        // ctr.setActive(true);
         do {
-          if (ctr.getValue() >= 20) {
+          if (ctr.getActivity()) {
             Thread.sleep(1000);
             Integer i = ctr.getValue();
             // System.out.println("Finished CT?");
@@ -66,11 +66,9 @@ public class Main extends Thread {
             // No, you're not allowed to judge me.
             i += ctr.getCPT();
             clickerButton.setText("" + i);
-            System.out.println(i);
+            // System.out.println(i);
             ctr.setValue(i);
             // setProgress(i);
-          } else {
-            // Do nothing.
           }
 
         } while (!isCancelled());
@@ -80,13 +78,11 @@ public class Main extends Thread {
     };
 
     ct.execute();
-    System.out.println("If you see this first, that means the thread is working.");
+    // System.out.println("If you see this first, that means the thread is working.");
 
     clickerButton.addActionListener(e -> {
-      // ctr.interrupt(); // TODO: Find a way to interrupt counter loop.
-      // TODO: Remove the above comment, since we moved that to a separate thread.
       int numClicks = ctr.getValue();
-      System.out.println(numClicks);
+      // System.out.println(numClicks);
       String value = "" + numClicks + "";
       clickerButton.setText(value);
       ctr.setValue(numClicks + 1);
@@ -96,7 +92,7 @@ public class Main extends Thread {
        System.out.println(clickCounter.getValue());
       */
 
-      if (numClicks < 26) {
+      if (numClicks < 40) {
         clickerButton.setBounds(80, 100, 250, (40 + ctr.getValue() * 3));
         ctr.setActive(true);
       }
@@ -132,7 +128,7 @@ public class Main extends Thread {
     do {
       clickerButton.setText("" + ctr.getValue() + "");
       if (ctr.getValue() >= 20) {
-        updateButton.setVisible(true);
+        // updateButton.setVisible(true);
         increaseButton.setVisible(true);
         decreaseButton.setVisible(true);
         CPTDisplay.setVisible(true);
