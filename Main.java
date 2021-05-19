@@ -1,10 +1,12 @@
 import javax.swing.*;
-import java.awt.event.*;
+
 import modules.*;
 
-public class Main {
+public class Main extends Thread {
+
   public static void main(String[] args) {
     System.out.println("Active");
+    System.out.println("Is EDT thread?: " + SwingUtilities.isEventDispatchThread());
     
     JFrame f = new JFrame();
     f.setVisible(true);
@@ -31,7 +33,7 @@ public class Main {
     f.add(decreaseButton);
     f.add(CPTDisplay);
 
-    updateButton.setVisible(true);
+    updateButton.setVisible(false);
     increaseButton.setVisible(false);
     decreaseButton.setVisible(false);
     CPTDisplay.setVisible(false);
@@ -40,31 +42,68 @@ public class Main {
     f.setLayout(null);
     System.out.println("UI Drawn.");
 
-    CounterThread ct = new CounterThread();
+    CounterRegister ctr = new CounterRegister();
     // ct.run();
 
+
+    SwingWorker<Boolean, Integer> ct = new SwingWorker<Boolean, Integer>() {
+      private Object Exception;
+
+      @Override
+      protected Boolean doInBackground() throws Exception {
+        System.out.println("Thread active.");
+        Thread.sleep(1000);
+        System.out.println("If you see this second, that means that the thread is working.");
+        Integer i = 0;
+        do {
+          // System.out.println("Finished CT?");
+          // Yes, I am busy-waiting here.
+          // No, you're not allowed to judge me.
+          i++;
+          Thread.sleep(1000);
+          clickerButton.setText("" + i);
+          System.out.println(i);
+          publish(i);
+          setProgress(i);
+        } while (!isCancelled());
+        // System.out.println("Finished CT?");
+        return true;
+      }
+    };
+    System.out.println("If you see this first, that means the thread is working.");
+
     clickerButton.addActionListener(e -> {
-      ct.interrupt(); // TODO: Find a way to interrupt counter loop.
-      int numClicks = ct.autoClicks.getValue();
+      // ctr.interrupt(); // TODO: Find a way to interrupt counter loop.
+      // TODO: Remove the above comment, since we moved that to a separate thread.
+      int numClicks = ct.getProgress();
+      // System.out.println(numClicks);
       String value = "" + numClicks + "";
-      // System.out.println(value);
-      // System.out.println(clickCounter.getValue());
+      /*
+       System.out.println(value);
+       System.out.println(clickCounter.getValue());
+      */
+      if (numClicks == 0) {
+        ct.execute();
+      }
 
       if (numClicks < 25) {
-        clickerButton.setBounds(80, 100, 250, (40 + ct.getValue() * 3));
+        clickerButton.setBounds(80, 100, 250, (40 + ct.getProgress() * 3));
       }
 
       clickerButton.setText(value);
 
+      // TODO: Make this do something correctly.
       if (numClicks == 20) {
         updateButton.setVisible(true);
         increaseButton.setVisible(true);
         decreaseButton.setVisible(true);
         CPTDisplay.setVisible(true);
-        ct.setPriority(Thread.MIN_PRIORITY);
-        ct.run();
+        ctr.increaseByOne();
+      } else if (numClicks == 21) {
+        // SwingUtilities.invokeLater(() -> ct.run());
+
       } else {
-        ct.increaseByOne();
+        ctr.increaseByOne();
       }
       /*
        ct.increaseByOne();
@@ -76,26 +115,27 @@ public class Main {
     });
   
     updateButton.addActionListener(e -> {
-      // ct.increase();
-      ct.interrupt();;
-      clickerButton.setText("" + ct.getValue() + "");
+      // ctd.increaseCPTBy(0);
+      ctr.interrupt();
+      clickerButton.setText("" + ct.getProgress() + "");
     });
 
     increaseButton.addActionListener(e -> {
-      ct.increaseCPTBy(1);
-      clickerButton.setText("" + ct.getValue() + "");
-      CPTDisplay.setText("" + ct.getCPT() + "");
+      ctr.increaseCPTBy(1);
+      clickerButton.setText("" + ct.getProgress() + "");
+      CPTDisplay.setText("" + ct.getProgress() + "");
     });
 
     decreaseButton.addActionListener(e -> {
-      ct.increaseCPTBy(-1);
-      clickerButton.setText("" + ct.getValue() + "");
-      CPTDisplay.setText("" + ct.getCPT() + "");
+      ctr.increaseCPTBy(-1);
+      clickerButton.setText("" + ct.getProgress() + "");
+      CPTDisplay.setText("" + ctr.getCPT() + "");
     });
 
     //noinspection InfiniteLoopStatement
     do {
-      clickerButton.setText("" + ct.getValue() + "");
+      // ct.interrupt();
+      clickerButton.setText("" + ct.getProgress() + "");
     } while (true);
   }
 }
