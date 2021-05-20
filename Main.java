@@ -1,8 +1,13 @@
-import modules.CounterRegister;
-import modules.Item;
-
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import modules.*;
 
 public class Main extends Thread {
 
@@ -50,19 +55,21 @@ public class Main extends Thread {
 
 // Create CounterThread.
     SwingWorker<Boolean, Integer> ct = new SwingWorker<Boolean, Integer>() {
+      private Object Exception;
+
       @Override
       protected Boolean doInBackground() throws Exception {
         System.out.println("Counter thread active.");
         Thread.sleep(1000);
-        System.out.println("If you see this second, that means that the thread is working.");
+        // System.out.println("If you see this second, that means that the thread is working.");
         // Integer i = 0;
         // ctr.setActive(true);
         do {
           CPTDisplay.setText("" + ctr.getCPT() + "");
-          if (ctr.getValue() > 40) {
+          if (ctr.getActivity()) {
             Thread.sleep(1000);
-            System.out.println("Looped");
-            int i = ctr.getValue();
+            Integer i = ctr.getValue();
+            // System.out.println("Finished CT?");
             // Yes, I am busy-waiting here.
             // No, you're not allowed to judge me.
             i += ctr.getCPT();
@@ -73,7 +80,7 @@ public class Main extends Thread {
           }
 
         } while (!isCancelled());
-        System.out.println("CT canceled.");
+        // System.out.println("Finished CT?");
         return true;
       }
     };
@@ -90,38 +97,39 @@ public class Main extends Thread {
 
       // Create buttons
       for (int i = 1; i < 10; i++) {
-        Item a = new Item( i * 40, "Increase by " + i + " Cost: " + i * 40 + " Number owned: 0", i);
+        Item a = new Item( i * 40, "increase by " + i + " Cost: " + i * 40, i);
         JButton k = new JButton(a.name);
         purchaseWindow.add(k);
 
-        k.addActionListener(e -> {
-          // System.out.println("" + k.getText());
-          if (ctr.getValue() > a.price) {
-            ctr.increaseCPTBy(a.effect);
-            ctr.setValue(ctr.getValue() - a.price);
-            // a.makePurchased();
-            // k.setText(k.getText().substring(0, k.getText().length()-1) + a.numOwned);
-          } else {
-            SwingWorker timer = new SwingWorker() {
-              @Override
-              protected Object doInBackground() throws Exception {
-                if (ctr.getValue() < a.price) {
-                  k.setText("You can't afford this.");
-                  Thread.sleep(5000);
-                  k.setText(a.name);
+        k.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            // System.out.println("" + k.getText());
+            if (ctr.getValue() > a.price) {
+              ctr.increaseCPTBy(a.effect);
+              ctr.setValue(ctr.getValue() - a.price);
+            } else {
+              SwingWorker timer = new SwingWorker() {
+                @Override
+                protected Object doInBackground() throws Exception {
+                  if (ctr.getValue() < a.price) {
+                    k.setText("You can't afford this.");
+                    Thread.sleep(5000);
+                    k.setText(a.name);
+                  }
+                  return null;
                 }
-                return null;
-              }
-            };
-            timer.execute();
+              };
+              timer.execute();
+            }
+            // ctr.increaseCPTBy(a.effect);
           }
-          // ctr.increaseCPTBy(a.effect);
         });
       }
     }
 
     ct.execute();
-    System.out.println("If you see this first, that means the thread is working.");
+    // System.out.println("If you see this first, that means the thread is working.");
 
     clickerButton.addActionListener(e -> {
       int numClicks = ctr.getValue();
