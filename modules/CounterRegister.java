@@ -20,26 +20,6 @@ public class CounterRegister {
     this.active = val;
   }
 
-  public void startLoop() {
-    /* TODO: Write code to check if ct is running. Return true if it is.
-    System.out.print("Started.");
-    for (int i = 0; i < 10; i ++) {
-      try {
-        Thread.sleep(1000);
-        // i--;
-        autoClicks.addAndGet(clicksPerTick);
-      } catch (InterruptedException e) {
-        autoClicks.addAndGet(clicksPerTick);
-        System.out.println(e);
-        break;
-      }
-
-      System.out.println("\nLooped " + autoClicks.get());
-    }
-
-     */
-  }
-
   public void interrupt() {
     this.interrupt = true;
     this.active = false;

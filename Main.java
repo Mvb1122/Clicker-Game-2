@@ -1,5 +1,12 @@
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import modules.*;
 
 public class Main extends Thread {
@@ -8,11 +15,11 @@ public class Main extends Thread {
     System.out.println("Active");
     // System.out.println("Is EDT thread?: " + SwingUtilities.isEventDispatchThread());
     
-    JFrame f = new JFrame();
-    f.setVisible(true);
-    f.setTitle("Clicker Game 2");
+    JFrame main = new JFrame();
+    main.setVisible(true);
+    main.setTitle("Clicker Game 2");
 
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     JButton clickerButton = new JButton("Click me!");
     JButton updateButton = new JButton("Update");
@@ -27,26 +34,26 @@ public class Main extends Thread {
     CPTDisplay.setBounds(80, 310, 250, 40);
 
 
-    f.add(clickerButton);
-    f.add(updateButton);
-    f.add(increaseButton);
-    f.add(decreaseButton);
-    f.add(CPTDisplay);
+    main.add(clickerButton);
+    main.add(updateButton);
+    main.add(increaseButton);
+    main.add(decreaseButton);
+    main.add(CPTDisplay);
 
     updateButton.setVisible(false);
     increaseButton.setVisible(false);
     decreaseButton.setVisible(false);
     CPTDisplay.setVisible(false);
 
-    f.setSize(400, 500);
-    f.setLayout(null);
+    main.setSize(400, 500);
+    main.setLayout(null);
     System.out.println("UI Drawn.");
 
     CounterRegister ctr = new CounterRegister();
     ctr.setActive(false);
     // ct.run();
 
-
+// Create CounterThread.
     SwingWorker<Boolean, Integer> ct = new SwingWorker<Boolean, Integer>() {
       private Object Exception;
 
@@ -58,6 +65,7 @@ public class Main extends Thread {
         // Integer i = 0;
         // ctr.setActive(true);
         do {
+          CPTDisplay.setText("" + ctr.getCPT() + "");
           if (ctr.getActivity()) {
             Thread.sleep(1000);
             Integer i = ctr.getValue();
@@ -77,6 +85,49 @@ public class Main extends Thread {
       }
     };
 
+// Create purchase logic.
+    JFrame purchaseWindow = new JFrame();
+    if (true) { // This just lets me hide the lines when I'm not working on this.
+      purchaseWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      purchaseWindow.setVisible(false);
+      purchaseWindow.setTitle("Capitalism.");
+      purchaseWindow.setSize(400, 500);
+      purchaseWindow.setLayout(new GridLayout(0,1));
+      purchaseWindow.setBounds(400, 0, 400, 500);
+
+      // Create buttons
+      for (int i = 1; i < 10; i++) {
+        Item a = new Item( i * 40, "increase by " + i + " Cost: " + i * 40, i);
+        JButton k = new JButton(a.name);
+        purchaseWindow.add(k);
+
+        k.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            // System.out.println("" + k.getText());
+            if (ctr.getValue() > a.price) {
+              ctr.increaseCPTBy(a.effect);
+              ctr.setValue(ctr.getValue() - a.price);
+            } else {
+              SwingWorker timer = new SwingWorker() {
+                @Override
+                protected Object doInBackground() throws Exception {
+                  if (ctr.getValue() < a.price) {
+                    k.setText("You can't afford this.");
+                    Thread.sleep(5000);
+                    k.setText(a.name);
+                  }
+                  return null;
+                }
+              };
+              timer.execute();
+            }
+            // ctr.increaseCPTBy(a.effect);
+          }
+        });
+      }
+    }
+
     ct.execute();
     // System.out.println("If you see this first, that means the thread is working.");
 
@@ -87,23 +138,11 @@ public class Main extends Thread {
       clickerButton.setText(value);
       ctr.setValue(numClicks + 1);
 
-      /*
-       System.out.println(value);
-       System.out.println(clickCounter.getValue());
-      */
-
       if (numClicks < 40) {
         clickerButton.setBounds(80, 100, 250, (40 + ctr.getValue() * 3));
         ctr.setActive(true);
       }
 
-      /*
-       ct.increaseByOne();
-       System.out.println(ct.getValue());
-      if (numClicks >= 20 && ct.active == false) {
-        // ct.run();
-      }
-      */
     });
   
     updateButton.addActionListener(e -> {
@@ -115,24 +154,25 @@ public class Main extends Thread {
     increaseButton.addActionListener(e -> {
       ctr.increaseCPTBy(1);
       clickerButton.setText("" + ctr.getValue() + "");
-      CPTDisplay.setText("" + ctr.getCPT() + "");
+      // CPTDisplay.setText("" + ctr.getCPT() + "");
     });
 
     decreaseButton.addActionListener(e -> {
       ctr.increaseCPTBy(-1);
       clickerButton.setText("" + ct.getProgress() + "");
-      CPTDisplay.setText("" + ctr.getCPT() + "");
+      // CPTDisplay.setText("" + ctr.getCPT() + "");
     });
 
     //noinspection InfiniteLoopStatement
     do {
       clickerButton.setText("" + ctr.getValue() + "");
-      if (ctr.getValue() >= 20) {
+      if (ctr.getValue() > 40) {
         // updateButton.setVisible(true);
         increaseButton.setVisible(true);
         decreaseButton.setVisible(true);
         CPTDisplay.setVisible(true);
         // ctr.increaseByOne();
+        purchaseWindow.setVisible(true);
       }
     } while (true);
   }
