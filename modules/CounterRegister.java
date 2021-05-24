@@ -7,6 +7,7 @@ public class CounterRegister {
   public int clicksPerTick = 1;
   public boolean interrupt = false;
   boolean active = false;
+  public String name = "";
 
   public void run() {
     this.active = true;
@@ -24,6 +25,15 @@ public class CounterRegister {
     this.interrupt = true;
     this.active = false;
     // System.out.println("Interrupted.");
+  }
+
+  public String getName() {
+    int i = getValue();
+    if (i > 5000) {
+      return "Congrats you win. That's it.";
+    } else {
+      return "" + i;
+    }
   }
 
   public int getValue() {

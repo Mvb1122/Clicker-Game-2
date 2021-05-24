@@ -1,17 +1,12 @@
+import modules.CounterRegister;
+import modules.Item;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
-import modules.*;
 
 public class Main extends Thread {
 
   public static void main(String[] args) {
+    int CTStartAmount = 55;
     System.out.println("Active");
     // System.out.println("Is EDT thread?: " + SwingUtilities.isEventDispatchThread());
     
@@ -26,12 +21,14 @@ public class Main extends Thread {
     JButton increaseButton = new JButton("Increase");
     JButton decreaseButton = new JButton("Decrease");
     JButton CPTDisplay = new JButton("1");
+    JButton hackerButton = new JButton("Activate hacker mode");
 
     clickerButton.setBounds(80, 100, 250, 40);
     updateButton.setBounds(80, 220, 250, 40);
-    increaseButton.setBounds(80, 265, 125, 40);
-    decreaseButton.setBounds(210, 265, 120, 40);
+    increaseButton.setBounds(80, 355, 125, 40);
+    decreaseButton.setBounds(210, 355, 120, 40);
     CPTDisplay.setBounds(80, 310, 250, 40);
+    hackerButton.setBounds(135, 425, 250, 40);
 
 
     main.add(clickerButton);
@@ -39,11 +36,13 @@ public class Main extends Thread {
     main.add(increaseButton);
     main.add(decreaseButton);
     main.add(CPTDisplay);
+    main.add(hackerButton);
 
     updateButton.setVisible(false);
     increaseButton.setVisible(false);
     decreaseButton.setVisible(false);
     CPTDisplay.setVisible(false);
+    hackerButton.setVisible(true);
 
     main.setSize(400, 500);
     main.setLayout(null);
@@ -55,32 +54,23 @@ public class Main extends Thread {
 
 // Create CounterThread.
     SwingWorker<Boolean, Integer> ct = new SwingWorker<Boolean, Integer>() {
-      private Object Exception;
 
       @Override
       protected Boolean doInBackground() throws Exception {
         System.out.println("Counter thread active.");
-        Thread.sleep(1000);
-        // System.out.println("If you see this second, that means that the thread is working.");
-        // Integer i = 0;
-        // ctr.setActive(true);
+        // Thread.sleep(1000);
         do {
+          //noinspection BusyWait
+          Thread.sleep(1000);
           CPTDisplay.setText("" + ctr.getCPT() + "");
           if (ctr.getActivity()) {
-            Thread.sleep(1000);
             Integer i = ctr.getValue();
-            // System.out.println("Finished CT?");
-            // Yes, I am busy-waiting here.
-            // No, you're not allowed to judge me.
             i += ctr.getCPT();
-            clickerButton.setText("" + i);
-            // System.out.println(i);
+            clickerButton.setText(ctr.getName());
             ctr.setValue(i);
-            // setProgress(i);
           }
 
         } while (!isCancelled());
-        // System.out.println("Finished CT?");
         return true;
       }
     };
@@ -101,29 +91,26 @@ public class Main extends Thread {
         JButton k = new JButton(a.name);
         purchaseWindow.add(k);
 
-        k.addActionListener(new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            // System.out.println("" + k.getText());
-            if (ctr.getValue() > a.price) {
-              ctr.increaseCPTBy(a.effect);
-              ctr.setValue(ctr.getValue() - a.price);
-            } else {
-              SwingWorker timer = new SwingWorker() {
-                @Override
-                protected Object doInBackground() throws Exception {
-                  if (ctr.getValue() < a.price) {
-                    k.setText("You can't afford this.");
-                    Thread.sleep(5000);
-                    k.setText(a.name);
-                  }
-                  return null;
+        k.addActionListener(e -> {
+          // System.out.println("" + k.getText());
+          if (ctr.getValue() > a.price) {
+            ctr.increaseCPTBy(a.effect);
+            ctr.setValue(ctr.getValue() - a.price);
+          } else {
+            SwingWorker timer = new SwingWorker() {
+              @Override
+              protected Object doInBackground() throws Exception {
+                if (ctr.getValue() < a.price) {
+                  k.setText("You can't afford this.");
+                  Thread.sleep(5000);
+                  k.setText(a.name);
                 }
-              };
-              timer.execute();
-            }
-            // ctr.increaseCPTBy(a.effect);
+                return null;
+              }
+            };
+            timer.execute();
           }
+          // ctr.increaseCPTBy(a.effect);
         });
       }
     }
@@ -133,46 +120,50 @@ public class Main extends Thread {
 
     clickerButton.addActionListener(e -> {
       int numClicks = ctr.getValue();
-      // System.out.println(numClicks);
-      String value = "" + numClicks + "";
-      clickerButton.setText(value);
       ctr.setValue(numClicks + 1);
 
-      if (numClicks < 40) {
-        clickerButton.setBounds(80, 100, 250, (40 + ctr.getValue() * 3));
+      if (numClicks >= CTStartAmount) {
         ctr.setActive(true);
       }
-
     });
   
     updateButton.addActionListener(e -> {
       // ctd.increaseCPTBy(0);
       ctr.interrupt();
-      clickerButton.setText("" + ct.getProgress() + "");
+      clickerButton.setText(ctr.getName());
     });
 
     increaseButton.addActionListener(e -> {
-      ctr.increaseCPTBy(1);
-      clickerButton.setText("" + ctr.getValue() + "");
-      // CPTDisplay.setText("" + ctr.getCPT() + "");
+      ctr.increaseCPTBy(10);
+      clickerButton.setText(ctr.getName());
+      CPTDisplay.setText("" + ctr.getCPT() + "");
     });
 
     decreaseButton.addActionListener(e -> {
-      ctr.increaseCPTBy(-1);
-      clickerButton.setText("" + ct.getProgress() + "");
-      // CPTDisplay.setText("" + ctr.getCPT() + "");
+      ctr.increaseCPTBy(-10);
+      clickerButton.setText(ctr.getName());
+      CPTDisplay.setText("" + ctr.getCPT() + "");
+    });
+
+    hackerButton.addActionListener(e -> {
+      // updateButton.setVisible(true);
+      increaseButton.setVisible(true);
+      decreaseButton.setVisible(true);
+      CPTDisplay.setVisible(true);
+      hackerButton.setVisible(false);
     });
 
     //noinspection InfiniteLoopStatement
     do {
-      clickerButton.setText("" + ctr.getValue() + "");
-      if (ctr.getValue() > 40) {
-        // updateButton.setVisible(true);
-        increaseButton.setVisible(true);
-        decreaseButton.setVisible(true);
+      clickerButton.setText(ctr.getName());
+      if (ctr.getValue() > CTStartAmount) {
         CPTDisplay.setVisible(true);
         // ctr.increaseByOne();
         purchaseWindow.setVisible(true);
+      }
+
+      if (ctr.getValue() < CTStartAmount) {
+        clickerButton.setBounds(80, 100, 250, (40 + ctr.getValue() * 3));
       }
     } while (true);
   }
