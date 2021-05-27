@@ -87,7 +87,7 @@ public class Main extends Thread {
 
       // Create buttons
       for (int i = 1; i < 10; i++) {
-        Item a = new Item( i * 40, "increase by " + i + " Cost: " + i * 40, i);
+        Item a = new Item( i * 40, "Increase by " + i + " Cost: " + i * 40, i);
         JButton k = new JButton(a.name);
         purchaseWindow.add(k);
 
@@ -95,7 +95,10 @@ public class Main extends Thread {
           // System.out.println("" + k.getText());
           if (ctr.getValue() > a.price) {
             ctr.increaseCPTBy(a.effect);
-            ctr.setValue(ctr.getValue() - a.price);
+            ctr.setValue((int) (ctr.getValue() - a.price));
+            a.makePurchased();
+            a.setPrice(a.price * 1.1);
+            k.setText(a.getName());
           } else {
             SwingWorker timer = new SwingWorker() {
               @Override
@@ -103,7 +106,7 @@ public class Main extends Thread {
                 if (ctr.getValue() < a.price) {
                   k.setText("You can't afford this.");
                   Thread.sleep(5000);
-                  k.setText(a.name);
+                  k.setText(a.getName());
                 }
                 return null;
               }
